@@ -1,16 +1,39 @@
 package racer
 
+import "fmt"
+
 // LOGIC
 
-func racer(a string, b string, ping func(string) chan bool) string {
+type funcPing = func(endpoint string) chan error
+
+func racer(a string, b string, ping funcPing) (error, string) {
+
+	aChan := ping(a)
+	bChan := ping(b)
 
 	select {
-	case <-ping(a):
-		return a
+	case err := <-aChan:
+		if err == nil {
+			return nil, a
+		}
 
-	case <-ping(b):
-		return b
+		err = <-bChan
+		if err == nil {
+			return nil, b
+		}
+
+	case err := <-bChan:
+		if err == nil {
+			return nil, b
+		}
+
+		err = <-aChan
+		if err == nil {
+			return nil, a
+		}
 	}
+
+	return fmt.Errorf("all pings failed"), ""
 }
 
 // Infructrucure
