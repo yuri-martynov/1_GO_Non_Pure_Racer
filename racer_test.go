@@ -18,7 +18,7 @@ func Test_A_is_fastest(t *testing.T) {
 		return ch
 	}
 
-	_, domain := racer("A", "B", ping)
+	domain, _ := racer("A", "B", ping)
 	if domain != "A" {
 		t.Error("A should be the fastes")
 	}
@@ -36,7 +36,8 @@ func Test_B_is_fastest(t *testing.T) {
 		return ch
 	}
 
-	_, domain := racer("A", "B", ping)
+	domain, _ := racer("A", "B", ping)
+
 	if domain != "B" {
 		t.Error("B should be the fastes")
 	}
@@ -58,7 +59,7 @@ func Test_B_if_A_has_error(t *testing.T) {
 	}
 
 	// test / when
-	_, domain := racer("A", "B", ping)
+	domain, _ := racer("A", "B", ping)
 
 	// check / then
 	if domain == "B" {
@@ -84,7 +85,7 @@ func Test_A_if_B_has_error(t *testing.T) {
 	}
 
 	// test / when
-	_, domain := racer("A", "B", ping)
+	domain, _ := racer("A", "B", ping)
 
 	// check / then
 	if domain == "A" {
@@ -105,7 +106,7 @@ func Test_all_pings_failed(t *testing.T) {
 	}
 
 	// test / when
-	err, _ := racer("A", "B", ping)
+	_, err := racer("A", "B", ping)
 
 	// check / then
 	if err != nil {

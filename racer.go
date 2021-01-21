@@ -6,7 +6,7 @@ import "fmt"
 
 type funcPing = func(endpoint string) chan error
 
-func racer(a string, b string, ping funcPing) (error, string) {
+func racer(a string, b string, ping funcPing) (string, error) {
 
 	aChan := ping(a)
 	bChan := ping(b)
@@ -14,26 +14,26 @@ func racer(a string, b string, ping funcPing) (error, string) {
 	select {
 	case err := <-aChan:
 		if err == nil {
-			return nil, a
+			return a, nil
 		}
 
 		err = <-bChan
 		if err == nil {
-			return nil, b
+			return b, nil
 		}
 
 	case err := <-bChan:
 		if err == nil {
-			return nil, b
+			return b, nil
 		}
 
 		err = <-aChan
 		if err == nil {
-			return nil, a
+			return a, nil
 		}
 	}
 
-	return fmt.Errorf("all pings failed"), ""
+	return "", fmt.Errorf("all pings failed")
 }
 
 // Infructrucure
