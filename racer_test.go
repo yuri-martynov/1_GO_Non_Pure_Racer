@@ -115,3 +115,67 @@ func Test_all_pings_failed(t *testing.T) {
 
 	t.Error("All pings have an error")
 }
+
+func Test_get_is_working(t *testing.T) {
+	// setup / given
+
+	// test / when
+	_, err := racer("https://yandex.ru", "https://google.com", get)
+
+	// check / then
+	if err == nil {
+		return
+	}
+
+	t.Error("get return error")
+}
+
+func Test_adapter_returns_timeout(t *testing.T) {
+	// setup
+	ping := func(url string) chan error {
+		ch := make(chan error)
+		go func() {
+			time.Sleep(time.Second)
+			ch <- nil
+		}()
+		return ch
+	}
+
+	pingWithTimeout := withTimeout(ping, time.Millisecond)
+
+	// test
+	err := <-pingWithTimeout("A")
+
+	// check
+	if err == errTimeout {
+		return
+	}
+
+	t.Error("should be timed out")
+
+}
+
+func Test_adapter_returns_ping_nil(t *testing.T) {
+	// setup
+	ping := func(url string) chan error {
+		ch := make(chan error)
+		go func() {
+			time.Sleep(time.Millisecond)
+			ch <- nil
+		}()
+		return ch
+	}
+
+	pingWithTimeout := withTimeout(ping, time.Second)
+
+	// test
+	err := <-pingWithTimeout("A")
+
+	// check
+	if err == nil {
+		return
+	}
+
+	t.Error("error should be nil")
+
+}

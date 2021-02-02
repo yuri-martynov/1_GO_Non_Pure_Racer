@@ -1,6 +1,10 @@
 package racer
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
 
 // LOGIC
 
@@ -38,6 +42,39 @@ func racer(a string, b string, ping funcPing) (string, error) {
 
 // Infructrucure
 
+func get(url string) chan error {
+	ch := make(chan error)
+	go func() {
+		_, err := http.Get(url)
+		ch <- err
+	}()
+	return ch
+}
+
+func getWithTimeout(timeOut time.Duration) funcPing {
+	return func(endpoint string) chan error {
+		return nil
+	}
+}
+
+var errTimeout = fmt.Errorf("timeout")
+
+func withTimeout(ping funcPing, timeout time.Duration) funcPing {
+	return func(url string) chan error {
+		ch := make(chan error)
+		go func() {
+			select {
+			case <-ping(url):
+				ch <- nil
+			case <-time.After(timeout):
+				ch <- errTimeout
+			}
+		}()
+
+		return ch
+	}
+}
+
 // func realPing(domain string, timeout time.Duration) chan bool {
 // 	ch := make(chan bool)
 // 	go func() {
@@ -50,10 +87,4 @@ func racer(a string, b string, ping funcPing) (string, error) {
 // 		}
 // 	}()
 // 	return ch
-// }
-
-// func ping(timeout time.Duration) func(string) chan bool {
-// 	return func(domain string) chan bool {
-// 		return realPing(domain, timeout)
-// 	}
 // }
