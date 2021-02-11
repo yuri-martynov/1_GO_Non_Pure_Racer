@@ -179,3 +179,37 @@ func Test_adapter_returns_ping_nil(t *testing.T) {
 	t.Error("error should be nil")
 
 }
+
+func Test_Get_returns_Timeout(t *testing.T) {
+	// setup
+
+	pingWithTimeout := getWithTimeout(time.Microsecond)
+
+	// test
+	err := <-pingWithTimeout("http://ya.ru")
+
+	// check
+	if err == errTimeout {
+		return
+	}
+
+	t.Error("error should be timeout")
+
+}
+
+func Test_Get_returns_Reply(t *testing.T) {
+	// setup
+
+	pingWithTimeout := getWithTimeout(time.Second * 30)
+
+	// test
+	err := <-pingWithTimeout("http://ya.ru")
+
+	// check
+	if err == nil {
+		return
+	}
+
+	t.Error("error should be nil")
+
+}

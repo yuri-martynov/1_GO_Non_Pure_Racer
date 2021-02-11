@@ -3,6 +3,7 @@ package racer
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -40,6 +41,24 @@ func racer(a string, b string, ping funcPing) (string, error) {
 	return "", fmt.Errorf("all pings failed")
 }
 
+var errTimeout = fmt.Errorf("timeout")
+
+func withTimeout(ping funcPing, timeout time.Duration) funcPing {
+	return func(url string) chan error {
+		ch := make(chan error)
+		go func() {
+			select {
+			case <-ping(url):
+				ch <- nil
+			case <-time.After(timeout):
+				ch <- errTimeout
+			}
+		}()
+
+		return ch
+	}
+}
+
 // Infructrucure
 
 func get(url string) chan error {
@@ -53,21 +72,17 @@ func get(url string) chan error {
 
 func getWithTimeout(timeOut time.Duration) funcPing {
 	return func(endpoint string) chan error {
-		return nil
-	}
-}
-
-var errTimeout = fmt.Errorf("timeout")
-
-func withTimeout(ping funcPing, timeout time.Duration) funcPing {
-	return func(url string) chan error {
 		ch := make(chan error)
+
 		go func() {
-			select {
-			case <-ping(url):
-				ch <- nil
-			case <-time.After(timeout):
+			client := http.Client{
+				Timeout: timeOut,
+			}
+			_, err := client.Get(endpoint)
+			if os.IsTimeout(err) {
 				ch <- errTimeout
+			} else {
+				ch <- err
 			}
 		}()
 
